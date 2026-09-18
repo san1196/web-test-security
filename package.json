@@ -1,0 +1,14 @@
+{
+  "name": "cyber-security-lab-vercel",
+  "version": "1.0.1",
+  "private": true,
+  "description": "Cyber Security Lab: static website with Supabase-owned reports",
+  "scripts": {
+    "build": "node scripts/verify.mjs",
+    "dev": "node scripts/serve.mjs",
+    "test": "node scripts/smoke-test.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

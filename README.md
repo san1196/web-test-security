@@ -1,84 +1,82 @@
-# Paket praktik Cyber Security
+# Cyber Security Lab — paket lengkap untuk Vercel
 
-Lab sengaja rentan, hanya localhost dan data fiktif. Jangan deploy ke internet.
-Memerlukan Python 3.10+; tidak memerlukan pip, Docker, atau lisensi berbayar.
+Paket ini mempertahankan 12 skenario, mode rentan/diperbaiki, laporan temuan, ekspor Markdown, dan koneksi Supabase dari website sebelumnya.
+Website adalah simulator browser; SQL, SSRF, JWT, dan DDoS merupakan model konseptual. Untuk latihan HTTP nyata dengan curl/ZAP/Burp gunakan folder praktik-lokal/cyber_lab dan README di dalamnya.
 
-## Windows PowerShell
-Buka terminal pada folder ini:
-    py -3 lab.py --mode vulnerable
-Jika py tidak tersedia gunakan python.
+## Perubahan untuk deployment
 
-## macOS Terminal
-    python3 lab.py --mode vulnerable
+- Seluruh file yang dipublikasikan ada di public/, termasuk public/index.html.
+- vercel.json secara eksplisit menentukan preset static (framework: null), output public, dan perintah build.
+- Pemeriksaan build memverifikasi file, sintaks JavaScript, dan logika dasar skenario. Tidak ada dependensi npm yang perlu diunduh.
+- Konfigurasi internal hosting sebelumnya tidak disertakan.
 
-Buka http://127.0.0.1:8000. Login alice/alice-lab atau bob/bob-lab.
-Invoice 1001 milik Alice; 1002 milik Bob.
-Ctrl+C untuk menghentikan server.
-Jalankan kembali dengan --mode fixed untuk retest. Login ulang setelah restart.
-Jika port digunakan, tambahkan --port 8001 dan ubah semua URL menjadi port 8001.
+404 pada screenshot adalah respons Vercel. Salah output/root directory dapat menimbulkan 404, tetapi screenshot saja tidak memastikan penyebab. Pastikan deployment berstatus Ready dan domain terhubung ke deployment Production proyek yang benar.
 
-## Verifikasi otomatis
-Windows: py -3 verifikasi_lab.py
-macOS: python3 verifikasi_lab.py
-Script menjalankan sendiri kedua mode pada port lokal sementara.
-Script memeriksa HTTP dan encoding output; eksekusi XSS harus dicek di browser.
+## Deploy melalui GitHub + dashboard Vercel
 
-## URL latihan pada mode rentan
-Baseline: http://127.0.0.1:8000/search?q=Laptop
-SQL: http://127.0.0.1:8000/search?q=%27%20OR%201%3D1%20--%20
-XSS: http://127.0.0.1:8000/echo?q=%3Cscript%3Ealert%28%27LAB-XSS%27%29%3C%2Fscript%3E
-IDOR: login Alice lalu bandingkan /api/invoices/1001 dan /api/invoices/1002.
+1. Ekstrak ZIP ke folder baru. File vercel.json, package.json, README.md, scripts/, public/, dan praktik-lokal/ berada pada tingkat yang sama.
+2. Unggah **seluruh isi folder hasil ekstrak** ke root repository GitHub yang Anda gunakan untuk Vercel. Jangan hanya unggah ZIP dan jangan hanya unggah folder public. Jangan mencampur file build/framework lama ke paket ini; gunakan branch atau repository bersih bila perlu.
+3. Import repository tersebut di Vercel, atau gunakan proyek yang sudah terhubung.
+4. Atur Settings / Build and Deployment sesuai tabel berikut, lalu lakukan deployment Production baru. vercel.json menetapkan build/output untuk paket ini, tetapi tidak mengoreksi Root Directory yang salah.
 
-## Batas lab
-Mode fixed memperbaiki celah yang diajarkan, bukan seluruh keamanan produksi.
-Password dalam kode, tanpa TLS, hashing, expiry sesi, logout, rate limit, CSRF lengkap.
-Database dan sesi dalam memori; restart mereset semuanya.
-Lihat buku untuk langkah, bukti, penilaian risiko, dan contoh laporan.
+| Pengaturan | Nilai |
+| --- | --- |
+| Framework Preset | Other |
+| Root Directory | kosong/default jika vercel.json ada di root repository |
+| Build Command | npm run build |
+| Output Directory | public |
+| Install Command | kosong; paket tidak mempunyai dependensi |
+| Node.js Version | 22.x atau versi yang lebih baru yang didukung Vercel |
 
-# Materi dan lab tambahan edisi diperluas
+Jika Anda mengunggah paket di dalam subfolder cyber-security-lab-vercel, Root Directory harus cyber-security-lab-vercel. Jangan pilih public atau dist sebagai Root Directory.
 
-## Server lanjutan
-Windows: py -3 lab_lanjutan.py --mode vulnerable
-macOS: python3 lab_lanjutan.py --mode vulnerable
-URL: http://127.0.0.1:8001
-Stop Ctrl+C; ulangi dengan --mode fixed untuk retest.
-Semua state direset saat restart. Akun: alice / alice-lab.
+5. Tunggu status **Ready**. Buka URL deployment Production dari dashboard. Bila URL deployment tersebut berhasil tetapi domain web-test-security.vercel.app tetap 404, periksa Settings / Domains dan pastikan domain menunjuk ke proyek/deployment Production yang benar.
+6. Bila masih gagal, periksa Build Logs: harus ada tulisan PASS: deployment package. Pastikan public/index.html ada di repository dan nama file menggunakan huruf kecil.
 
-## Endpoint tambahan
-/limited: GET empat kali serial; fixed mengembalikan 429 setelah tiga request per IP dalam 30 detik.
-/login: POST username dan password; fixed membatasi tiga request per IP dalam 30 detik.
-/preview?url=...: simulasi allowlist URL dalam kamus, TIDAK melakukan outbound request.
-/file?name=...: simulasi path dalam kamus, TIDAK membaca file OS.
-/profile: POST display_name dan role; fixed hanya mengizinkan display_name.
-/preferences: GET token CSRF sesi; POST email dengan csrf_token pada fixed.
-/coupon: POST code=LAB10; fixed menolak penggunaan ulang dengan 409.
+Referensi: https://vercel.com/docs/project-configuration/vercel-json
 
-Contoh login curl (Windows gunakan curl.exe):
-    curl -c alice.cookies -d "username=alice&password=alice-lab" http://127.0.0.1:8001/login
-    curl -b alice.cookies http://127.0.0.1:8001/preferences
-    curl -b alice.cookies -d "display_name=Alice2&role=admin" http://127.0.0.1:8001/profile
-    curl -b alice.cookies -d "code=LAB10" http://127.0.0.1:8001/coupon
+## Deploy menggunakan Vercel CLI (opsional)
 
-Jika login telah dibatasi, restart atau tunggu window 30 detik. Hitungan lab fixed mencakup login benar dan salah.
-File cookie jar bukan cookie browser; lihat bab CSRF untuk login browser memakai fetch.
-Untuk form lokal CSRF jalankan server statis di folder ini:
-    python3 -m http.server 8002 --bind 127.0.0.1
-atau Windows:
-    py -3 -m http.server 8002 --bind 127.0.0.1
-Buka http://127.0.0.1:8002/csrf_demo.html setelah login browser pada port 8001.
+Di Terminal/PowerShell, masuk ke folder yang berisi vercel.json, lalu jalankan:
 
-## Simulasi ketersediaan tanpa jaringan
-Windows: py -3 simulasi_ketersediaan.py
-macOS: python3 simulasi_ketersediaan.py
-Model antrean offline. Bukan generator DDoS, bukan benchmark produksi.
+```sh
+npx vercel --prod
+```
 
-## Verifikasi tambahan
-Windows: py -3 verifikasi_lanjutan.py
-macOS: python3 verifikasi_lanjutan.py
-Maksimal 20 request serial per mode, hanya proses server yang dijalankan script sendiri di loopback.
+Login dengan akun Vercel Anda dan pilih proyek yang benar. Penggunaan CLI membutuhkan akses npm dan Vercel.
 
-## Batas bukti
-Tidak ada eksploitasi jaringan SSRF, pembacaan file OS, upload payload aktif, atau race concurrent.
-Role fixture dapat berubah di vulnerable, tetapi tidak mengaktifkan permission admin.
-Lab ini mengajarkan kontrol dan pelaporan; fixed bukan baseline produksi lengkap.
-JWT, upload, command injection, dan monitoring mempunyai latihan review/desain dalam buku.
+## Menjalankan dan memeriksa di Windows / macOS
+
+Pasang Node.js 22 atau versi lebih baru terlebih dahulu. Dari folder yang berisi package.json:
+
+```sh
+npm run build
+npm test
+npm run dev
+```
+
+Buka http://127.0.0.1:3000. Hentikan server dengan Ctrl+C. Tidak perlu npm install untuk build/test/dev karena semua skrip memakai modul bawaan Node.js. Gunakan server HTTP; jangan menguji sesi/login melalui file://.
+
+## Supabase
+
+Koneksi ke proyek vwjlqxissuumelwgoliv sudah disertakan di public/app.js. Konfigurasi memakai endpoint API https://vwjlqxissuumelwgoliv.supabase.co, bukan URL dashboard. Key yang disertakan adalah publishable key milik proyek yang Anda berikan; tidak ada service-role key dalam paket.
+
+- Bila tabel belum dibuat: jalankan public/supabase-schema.sql satu kali melalui SQL Editor proyek. Jangan menjalankan ulang skrip pembuatan tabel bila tabel sudah ada.
+- Provider Email harus aktif. Daftar/login melalui menu Akun & database di website.
+- Jika konfirmasi email aktif: di Supabase Authentication / URL Configuration, set Site URL ke URL deployment Vercel Anda. Tambahkan origin deployment yang digunakan ke Redirect URLs sesuai pengaturan Auth proyek.
+- Sesi login hanya berada di memori browser; masuk kembali setelah refresh.
+- Laporan dan riwayat memakai tabel cyber_lab_findings dan cyber_lab_runs. RLS memisahkan data per akun; mode rentan simulator tidak menonaktifkan aturan database.
+- Skema tidak diterapkan otomatis oleh Vercel. Key publishable tidak berwenang membuat tabel.
+- Jika mengganti proyek, ubah SUPABASE_URL dan SUPABASE_KEY di public/app.js kemudian deploy ulang.
+
+## Pemeriksaan setelah deploy
+
+1. Halaman / menampilkan Laboratorium keamanan dan daftar 12 skenario.
+2. IDOR: mode rentan + invoice 1002 menampilkan data Bob; mode diperbaiki menolak dengan 403. Invoice 1001 tetap boleh dibaca.
+3. Coba navigasi Laporan temuan dan Akun & database. Navigasi menggunakan hash (#lab, #findings, #setup), sehingga tidak membutuhkan rewrite SPA.
+4. Setelah skema tersedia dan Anda masuk, simpan satu hasil pengujian serta satu laporan. Periksa baris terkait di Table Editor Supabase.
+5. Masuk dengan akun peserta kedua: data peserta pertama seharusnya tidak muncul. Konfirmasi juga melalui API sesuai ruang lingkup pengujian Anda.
+
+## Batas verifikasi paket
+
+Paket telah diperiksa melalui build, uji logika, dan server HTTP lokal. Tidak ada akses ke dashboard Vercel Anda, sehingga perubahan pengaturan proyek/domain dan deployment di akun Anda harus Anda lakukan. Pengujian penyimpanan dua akun pada proyek Supabase membutuhkan skema dan akun yang valid; pemeriksaan lokal tidak membuktikan kebijakan database sudah diterapkan.
