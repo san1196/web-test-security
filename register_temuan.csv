@@ -1,0 +1,12 @@
+ID,Judul,Endpoint,Role,Severity,Metode,Alasan,Status,PIC,Target_perbaikan,Tanggal_retest,Hasil_retest
+F-01,Akses invoice lintas pengguna,/api/invoices/1002,Alice,,,,Open,,,,
+F-02,Input search mengubah query,/search,Publik,,,,Open,,,,
+F-03,Script pada echo,/echo,Publik,,,,Open,,,,
+F-04,Hardening cookie dan header,/login dan /,Publik,,,,Open,,,,
+F-05,Pembatasan request belum diterapkan,/limited,Publik,,,,Open,,,,
+F-06,Login belum dibatasi pada sampel,/login,Publik,,,,Open,,,,
+F-07,Preferensi berubah tanpa token CSRF,/preferences,Alice,,,,Open,,,,
+F-08,Validasi tujuan URL fixture,/preview,Publik,,,,Open,,,,
+F-09,Pembatasan path virtual,/file,Publik,,,,Open,,,,
+F-10,Field role dapat diubah,/profile,Alice,,,,Open,,,,
+F-11,Kupon dapat digunakan ulang,/coupon,Alice,,,,Open,,,,
